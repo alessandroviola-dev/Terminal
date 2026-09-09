@@ -1,0 +1,54 @@
+# Swift Package Manager / Xcode build products
+.build/
+DerivedData/
+build/
+Build/
+*.xcarchive
+*.ipa
+*.dSYM/
+*.dSYM.zip
+*.app/
+
+# Xcode and Swift user-local state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.moved-aside
+*.xccheckout
+
+# macOS and editor temporary files
+.DS_Store
+.AppleDouble
+.LSOverride
+*~
+*.swp
+*.swo
+*.tmp
+*.temp
+*.bak
+*.orig
+*.log
+
+# Tool caches and local runtime data
+.ruff_cache/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+.swiftpm/configuration/
+.swiftpm/security/
+coverage/
+*.profdata
+*.profraw
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.mobileprovision
+*.cer
+secrets/
+credentials/
+
+# Locally produced application bundle
+Terminal.app/
