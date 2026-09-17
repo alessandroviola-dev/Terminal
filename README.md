@@ -1,5 +1,7 @@
 # Terminal
 
+[![CI](https://github.com/alessandroviola-dev/Terminal/actions/workflows/ci.yml/badge.svg)](https://github.com/alessandroviola-dev/Terminal/actions/workflows/ci.yml)
+
 A compact native macOS terminal that lives in the menu bar.
 
 Terminal keeps real shell sessions close at hand without requiring a traditional terminal window to remain open. Click the menu-bar icon to reveal the terminal panel, work in one or more tabs, then hide it again without interrupting the running shell processes.
@@ -78,7 +80,7 @@ The exact SwiftTerm revision used by the validated baseline is recorded in `Pack
 ## Requirements
 
 - macOS 14 or later
-- Swift 6.x toolchain for source builds
+- Swift 6.2 or later for source builds
 - Xcode or an appropriate macOS Swift development environment
 
 ## Build from source
@@ -153,6 +155,7 @@ Security issues in Terminal itself should be reported privately; see [`SECURITY.
 
 ```text
 Terminal/
+├── .github/workflows/ci.yml
 ├── Package.swift
 ├── Package.resolved
 ├── Resources/
