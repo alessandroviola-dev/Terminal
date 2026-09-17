@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          swift --version
+          xcodebuild -version
+
+      - name: Validate plist
+        run: plutil -lint Resources/Info.plist
+
+      - name: Debug build with warnings as errors
+        run: swift build -Xswiftc -warnings-as-errors
+
+      - name: Tests with warnings as errors
+        run: swift test -Xswiftc -warnings-as-errors
+
+      - name: Build application bundle
+        run: ./Scripts/build-app.sh
+
+      - name: Verify bundle
+        run: |
+          test -x Terminal.app/Contents/MacOS/Terminal
+          codesign --verify --strict Terminal.app
+          plutil -lint Terminal.app/Contents/Info.plist
