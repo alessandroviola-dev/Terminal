@@ -191,4 +191,10 @@ The project currently builds from source and produces an ad-hoc-signed local app
 
 ## License
 
-Copyright © 2026 Alessandro Viola. See [`LICENSE`](LICENSE).
+Terminal is **source-available under the MIT License with the Commons Clause License Condition v1.0**.
+
+You may use, study, modify and redistribute the software under the license terms, but you may not sell Terminal itself or offer a substantially equivalent paid product or service whose value derives substantially from Terminal's functionality.
+
+Because of the Commons Clause restriction, Terminal should not be described as OSI-approved open-source software.
+
+Copyright © 2026 Alessandro Viola. See [`LICENSE`](LICENSE) for the complete terms.
