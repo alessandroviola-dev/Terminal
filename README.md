@@ -77,13 +77,28 @@ The presentation layer does not recreate terminal processes during ordinary show
 
 The exact SwiftTerm revision used by the validated baseline is recorded in `Package.resolved`.
 
+## Download
+
+This repository remains private. Authorized users can download the compiled `Terminal-vX.Y.Z-macOS.zip` from its GitHub Actions artifacts. No public GitHub Release is created. The compiled app does not require Xcode, Swift, Homebrew, or Command Line Tools on the destination Mac.
+
+## Installation
+
+1. Download `Terminal-vX.Y.Z-macOS.zip` from the authorized build artifact.
+2. Extract it to obtain `Terminal.app`.
+3. Drag `Terminal.app` to `/Applications`.
+4. Open Terminal.
+
+The current builds are ad-hoc signed and are not yet Developer ID notarized. If Gatekeeper blocks the first launch, control-click the app, choose **Open**, then confirm **Open**; alternatively approve it in **System Settings → Privacy & Security**. Do not disable Gatekeeper globally.
+
 ## Requirements
 
+The following are for source builds only:
+
 - macOS 14 or later
-- Swift 6.2 or later for source builds
+- Swift 6.2 or later
 - Xcode or an appropriate macOS Swift development environment
 
-## Build from source
+## Build from source (developers)
 
 Clone the repository and build the application bundle:
 
@@ -93,13 +108,13 @@ cd Terminal
 ./Scripts/build-app.sh
 ```
 
-The script creates:
+The script creates a local `Terminal.app`. To create the arm64 release bundle and source-free ZIP used by CI, run:
 
-```text
-Terminal.app
+```bash
+./Scripts/build-release.sh
 ```
 
-The local build is ad-hoc signed and verified with `codesign`.
+Both local bundles are ad-hoc signed and verified with `codesign`.
 
 To run the Swift package directly during development:
 
@@ -187,7 +202,7 @@ These are coverage limits, not known defects.
 
 ## Distribution status
 
-The project currently builds from source and produces an ad-hoc-signed local application bundle. A notarized Developer ID binary, DMG and public GitHub Release are not part of the current distribution path.
+The private repository produces an ad-hoc-signed downloadable ZIP through its manual GitHub Actions workflow. A Developer ID-signed/notarized binary, stapling, and a DMG can be added later without changing the application core. Terminal remains private and does not publish a public GitHub Release.
 
 ## License
 
