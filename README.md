@@ -79,11 +79,13 @@ The exact SwiftTerm revision used by the validated baseline is recorded in `Pack
 
 ## Download
 
-This repository remains private. Authorized users can download the compiled `Terminal-vX.Y.Z-macOS.zip` from its GitHub Actions artifacts. No public GitHub Release is created. The compiled app does not require Xcode, Swift, Homebrew, or Command Line Tools on the destination Mac.
+For normal installation, download the latest compiled `Terminal-vX.Y.Z-macOS.zip` from the repository's **GitHub Releases** page.
+
+The compiled app does **not** require Xcode, Swift, Homebrew, or Command Line Tools on the destination Mac. Source builds are only for developers.
 
 ## Installation
 
-1. Download `Terminal-vX.Y.Z-macOS.zip` from the authorized build artifact.
+1. Download the latest `Terminal-vX.Y.Z-macOS.zip` from **GitHub Releases**.
 2. Extract it to obtain `Terminal.app`.
 3. Drag `Terminal.app` to `/Applications`.
 4. Open Terminal.
@@ -171,6 +173,7 @@ Security issues in Terminal itself should be reported privately; see [`SECURITY.
 ```text
 Terminal/
 ├── .github/workflows/ci.yml
+├── .github/workflows/release-artifact.yml
 ├── Package.swift
 ├── Package.resolved
 ├── Resources/
@@ -202,7 +205,9 @@ These are coverage limits, not known defects.
 
 ## Distribution status
 
-The private repository produces an ad-hoc-signed downloadable ZIP through its manual GitHub Actions workflow. A Developer ID-signed/notarized binary, stapling, and a DMG can be added later without changing the application core. Terminal remains private and does not publish a public GitHub Release.
+Terminal produces an ad-hoc-signed downloadable ZIP through GitHub Actions. Version tags matching the app version (for example `v3.0`) publish the compiled ZIP to **GitHub Releases** automatically.
+
+A Developer ID-signed/notarized binary, stapling, and a DMG can be added later without changing the application core.
 
 ## License
 
