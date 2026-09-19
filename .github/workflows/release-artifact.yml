@@ -1,10 +1,13 @@
-name: Private macOS distribution artifact
+name: Release macOS artifact
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - "v*.*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -26,9 +29,18 @@ jobs:
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' dist/Terminal.app/Contents/Info.plist)" = com.alessandroviola.terminal
           codesign --verify --deep --strict dist/Terminal.app
           unzip -Z1 dist/Terminal-v*-macOS.zip | grep -q '^Terminal.app/Contents/MacOS/Terminal$'
-      - name: Upload private distributable artifact
+      - name: Upload distributable artifact
         uses: actions/upload-artifact@v4
         with:
           name: Terminal-macOS
           path: dist/Terminal-v*-macOS.zip
           if-no-files-found: error
+      - name: Publish GitHub Release for matching version tag
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' Resources/Info.plist)
+          test "$TAG" = "v$VERSION"
+          gh release create "$TAG" dist/Terminal-v*-macOS.zip --generate-notes
