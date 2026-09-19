@@ -79,13 +79,13 @@ The exact SwiftTerm revision used by the validated baseline is recorded in `Pack
 
 ## Download
 
-For normal installation, download the latest compiled `Terminal-vX.Y.Z-macOS.zip` from the repository's **GitHub Releases** page.
+For normal installation, download the latest compiled `Terminal-vX.Y.Z-macOS.zip` from [GitHub Releases](https://github.com/alessandroviola-dev/Terminal/releases).
 
 The compiled app does **not** require Xcode, Swift, Homebrew, or Command Line Tools on the destination Mac. Source builds are only for developers.
 
 ## Installation
 
-1. Download the latest `Terminal-vX.Y.Z-macOS.zip` from **GitHub Releases**.
+1. Download the latest `Terminal-vX.Y.Z-macOS.zip` from [GitHub Releases](https://github.com/alessandroviola-dev/Terminal/releases).
 2. Extract it to obtain `Terminal.app`.
 3. Drag `Terminal.app` to `/Applications`.
 4. Open Terminal.
