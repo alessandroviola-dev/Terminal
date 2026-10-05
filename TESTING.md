@@ -1,4 +1,4 @@
-# Testing — Terminal 3.0 build 6
+# Testing — Terminal 3.1 build 7
 
 Overall validated status: **PASS within the tested scope**.
 
