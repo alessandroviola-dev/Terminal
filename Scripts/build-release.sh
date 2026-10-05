@@ -25,8 +25,9 @@ build=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST")
 [[ -n "$version" && -n "$build" ]] || fail "Bundle version is missing."
 
 cd "$ROOT"
-# Do not serialize the builder's absolute source path into the shipped executable.
-swift build -c release --arch arm64 -Xswiftc -debug-prefix-map -Xswiftc "$ROOT=/Source"
+# Do not serialize the builder's absolute source or object-build paths into the
+# shipped executable. Swift release builds otherwise retain DWARF paths to .build.
+swift build -c release --arch arm64 -Xswiftc -gnone -Xswiftc -debug-prefix-map -Xswiftc "$ROOT=/Source"
 bin_path=$(swift build -c release --arch arm64 --show-bin-path)
 executable="$bin_path/$APP_NAME"
 [[ -x "$executable" ]] || fail "Release executable was not produced: $executable"
@@ -73,11 +74,6 @@ fi
 if printf '%s\n' "$entries" | grep -E '(^|/)(\.build|DerivedData|\.env|.*\.(pem|p12|cer|key)|.*\.log)(/|$)' >/dev/null; then
     fail "ZIP contains excluded local or credential material."
 fi
-local_home="${HOME:-}"
-if [[ -n "$local_home" ]] && unzip -p "$zip" | grep -a -F "$local_home" >/dev/null; then
-    fail "ZIP contains the builder's absolute local user path."
-fi
-
 extract="$stage/extracted"
 mkdir "$extract"
 unzip -q "$zip" -d "$extract"
@@ -85,4 +81,26 @@ extracted="$extract/$APP_NAME.app"
 [[ -x "$extracted/Contents/MacOS/$APP_NAME" && -s "$extracted/Contents/Resources/AppIcon.icns" ]] || fail "Extracted bundle is incomplete."
 plutil -lint "$extracted/Contents/Info.plist" >/dev/null
 codesign --verify --deep --strict --verbose=2 "$extracted"
+
+# Fail closed for real source and local-user paths, but do not treat the generic
+# /Users/runner path embedded by hosted GitHub macOS toolchains as private data.
+privacy_paths=("$ROOT")
+if [[ -n "${GITHUB_WORKSPACE:-}" && "${GITHUB_WORKSPACE}" != "$ROOT" ]]; then
+    privacy_paths+=("$GITHUB_WORKSPACE")
+fi
+if [[ "${GITHUB_ACTIONS:-}" != "true" && -n "${HOME:-}" ]]; then
+    privacy_paths+=("$HOME")
+fi
+
+# Scan the bundle extracted from the final ZIP so diagnostics name the member
+# carrying the private path without printing the sensitive value.
+while IFS= read -r -d '' file; do
+    for privacy_path in "${privacy_paths[@]}"; do
+        if grep -a -F -q -- "$privacy_path" "$file"; then
+            relative_path="${file#"$extracted"/}"
+            fail "private build path found in $APP_NAME.app/$relative_path"
+        fi
+    done
+done < <(find "$extracted" -type f -print0)
+
 printf 'Built %s (version %s, build %s)\nZIP: %s\n' "$OUTPUT_DIR/$APP_NAME.app" "$version" "$build" "$zip"
