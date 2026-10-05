@@ -4,6 +4,10 @@ All notable public-facing changes to Terminal are documented here.
 
 ## Unreleased
 
+No unreleased changes.
+
+## 3.1 — build 7
+
 - Added optional detachable desktop-window mode while keeping menu-bar mode as the default.
 - Preserved live PTY-backed sessions, tabs, working directories and scrollback across detach and reattach.
 - Added per-tab `+` creation in the source session's current working directory.
