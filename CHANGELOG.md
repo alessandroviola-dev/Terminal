@@ -6,6 +6,12 @@ All notable public-facing changes to Terminal are documented here.
 
 No unreleased changes.
 
+## 3.1.1 — build 8
+
+- Fixed release packaging privacy-path detection on GitHub-hosted macOS runners.
+- Hardened release builds against local build-path metadata leakage.
+- Kept fail-closed checks for real workspace/local paths.
+
 ## 3.1 — build 7
 
 - Added optional detachable desktop-window mode while keeping menu-bar mode as the default.
