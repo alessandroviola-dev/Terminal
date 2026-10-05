@@ -3,10 +3,12 @@ import AppKit
 @MainActor
 final class TerminalPanel: NSPanel {
     override var canBecomeKey: Bool { true }
-    override var canBecomeMain: Bool { false }
+    override var canBecomeMain: Bool { true }
 }
 
-/// One permanent status item, one anchored resizable panel. No presentation-mode state machine.
+enum TerminalPresentationMode { case menuBar, desktopWindow }
+
+/// One permanent status item and one reusable panel shared by both presentation modes.
 @MainActor
 final class TerminalPanelController: NSObject, NSWindowDelegate {
     private let sessions: TerminalSessionManager
@@ -17,6 +19,7 @@ final class TerminalPanelController: NSObject, NSWindowDelegate {
     private var lastSelectedID: UUID?
     private var stopped = false
     private var positioning = false
+    private(set) var presentationMode: TerminalPresentationMode = .menuBar
 
     init(sessions: TerminalSessionManager) {
         self.sessions = sessions
@@ -39,7 +42,10 @@ final class TerminalPanelController: NSObject, NSWindowDelegate {
         contentView.tabStrip.onClose = { [weak self] in self?.sessions.closeSession(id: $0) }
         contentView.tabStrip.onRename = { [weak self] in self?.rename(id: $0) }
         contentView.tabStrip.onNew = { [weak self] in self?.createSession() }
+        contentView.tabStrip.onNewInDirectory = { [weak self] id in self?.createSession(in: self?.sessions.sessions.first(where: { $0.id == id })?.workingDirectory) }
         contentView.tabStrip.onOpenFolder = { [weak self] in self?.openFolder() }
+        contentView.tabStrip.onDetach = { [weak self] in self?.detach() }
+        contentView.tabStrip.onAttach = { [weak self] in self?.attach() }
         sessions.onChange = { [weak self] in self?.syncSessions() }
         syncSessions()
         installStatusItem()
@@ -70,7 +76,7 @@ final class TerminalPanelController: NSObject, NSWindowDelegate {
     func show() {
         guard !stopped else { return }
         ensureStatusItem()
-        guard positionUnderStatusItem() else { return }
+        if presentationMode == .menuBar && !positionUnderStatusItem() { return }
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
         focusTerminal()
@@ -92,6 +98,39 @@ final class TerminalPanelController: NSObject, NSWindowDelegate {
         return NSRect(x: x, y: max(visible.minY, top - height), width: width, height: height)
     }
 
+    func detach() {
+        guard presentationMode == .menuBar else { return }
+        let oldFrame = panel.frame
+        presentationMode = .desktopWindow
+        panel.styleMask = [.borderless, .resizable]
+        panel.level = .normal
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.isMovable = true; panel.isMovableByWindowBackground = false; panel.hidesOnDeactivate = false
+        contentView.tabStrip.isDetached = true
+        contentView.tabStrip.render(sessions: sessions.sessions, selectedID: sessions.selectedSessionID)
+        let visible = NSScreen.screens.first(where: { $0.frame.intersects(oldFrame) })?.visibleFrame
+        if let visible {
+            let shifted = oldFrame.offsetBy(dx: 0, dy: -40)
+            let x = min(max(shifted.minX, visible.minX), visible.maxX - shifted.width)
+            let y = min(max(shifted.minY, visible.minY), visible.maxY - shifted.height)
+            panel.setFrame(NSRect(x: x, y: y, width: shifted.width, height: shifted.height), display: true)
+        }
+        panel.makeKeyAndOrderFront(nil); focusTerminal()
+    }
+
+    func attach() {
+        guard presentationMode == .desktopWindow else { return }
+        presentationMode = .menuBar
+        panel.styleMask = [.borderless, .resizable]
+        panel.level = .popUpMenu
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient, .ignoresCycle]
+        panel.isMovable = false; panel.isMovableByWindowBackground = false
+        contentView.tabStrip.isDetached = false
+        contentView.tabStrip.render(sessions: sessions.sessions, selectedID: sessions.selectedSessionID)
+        _ = positionUnderStatusItem()
+        hide()
+    }
+
     @discardableResult
     private func positionUnderStatusItem() -> Bool {
         guard !positioning, let status = menu.statusFrameOnScreen(),
@@ -107,6 +146,7 @@ final class TerminalPanelController: NSObject, NSWindowDelegate {
     @objc private func screenEnvironmentChanged(_ notification: Notification) {
         ensureStatusItem()
         // Screen/menu layout is asynchronous. Even a sheet must not strand its parent on a removed display.
+        if presentationMode == .desktopWindow { return }
         if let sheet = panel.attachedSheet {
             panel.endSheet(sheet, returnCode: .cancel)
             sheet.orderOut(nil)
@@ -116,7 +156,8 @@ final class TerminalPanelController: NSObject, NSWindowDelegate {
     }
 
     func windowDidEndLiveResize(_ notification: Notification) {
-        positionUnderStatusItem()
+        guard presentationMode == .menuBar else { return }
+        _ = positionUnderStatusItem()
     }
 
     func windowDidResize(_ notification: Notification) {
@@ -125,6 +166,7 @@ final class TerminalPanelController: NSObject, NSWindowDelegate {
 
     func windowDidResignKey(_ notification: Notification) {
         // A status-button click owns its toggle; a sheet must retain its parent panel.
+        guard presentationMode == .menuBar else { return }
         DispatchQueue.main.async { [weak self] in
             guard let self, !self.panel.isKeyWindow, !self.menu.isTracking,
                   self.panel.attachedSheet == nil else { return }

@@ -18,7 +18,8 @@ Current baseline: **Terminal 3.0 (build 6)**.
 - Preserves each tab's process, PID and working directory.
 - Supports tab selection, rename and close.
 - Can create a terminal session from a selected folder.
-- Provides a native resizable panel anchored to the menu bar.
+- Provides a native resizable panel anchored to the menu bar by default.
+- Supports an optional movable, resizable desktop-window mode with reattach to the menu bar.
 - Keeps terminal geometry synchronized with the actual SwiftTerm view size.
 
 Terminal is deliberately focused. It is not a shell replacement, remote terminal service, command launcher or terminal multiplexer. It is a lightweight macOS presentation layer around normal local terminal sessions.
@@ -30,10 +31,11 @@ At launch Terminal creates a single icon-only `NSStatusItem` and starts with the
 - First click: opens the panel and focuses the active terminal.
 - Second click: hides the panel.
 - Hiding the panel does not terminate the shell.
-- The panel can be resized but is intentionally not freely movable.
-- The panel stays anchored to the active menu-bar item and constrained to the visible screen area.
+- In menu-bar mode, the panel stays anchored to the active menu-bar item and constrained to the visible screen area.
+- The menu-bar panel can be detached into a normal desktop window that is movable, resizable and persistent when it loses focus.
+- The custom Terminal header remains visible in both modes; the desktop window can be reattached to the menu bar without restarting sessions.
 
-The current 3.0 design intentionally removed the earlier floating/notch concept. There is no floating island, snap system, dock/undock state or alternate desktop presentation mode.
+The current design does not use the earlier floating/notch concept or a snap system. It has two explicit presentations: menu-bar mode (the default at every launch) and desktop-window mode.
 
 ## Tabs and sessions
 
@@ -44,10 +46,12 @@ A session retains its shell process while the application panel is hidden or whi
 The tab strip supports:
 
 - independent sessions;
-- selection;
-- rename;
-- close;
-- horizontal scrolling when needed.
+- selection, rename and close;
+- a per-tab `+` that creates a session in that tab's current `workingDirectory`;
+- stable full-height tab hit targets;
+- horizontal overflow without a visible scrollbar taking space from the tabs;
+- trackpad horizontal gestures and mouse-wheel scrolling converted to horizontal movement;
+- automatic reveal of the selected tab.
 
 ## Architecture
 
@@ -64,7 +68,7 @@ AppDelegate
                  └─ SwiftTerm host
 ```
 
-The presentation layer does not recreate terminal processes during ordinary show/hide or resize operations.
+The presentation layer does not recreate terminal processes during show/hide, resize or detach/reattach operations. Terminal sessions, PTYs, working directories, selected tabs and scrollback remain owned by `TerminalSessionManager` and continue living independently of the window presentation.
 
 ## Technology
 
