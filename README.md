@@ -6,7 +6,7 @@ A compact native macOS terminal that lives in the menu bar.
 
 Terminal keeps real shell sessions close at hand without requiring a traditional terminal window to remain open. Click the menu-bar icon to reveal the terminal panel, work in one or more tabs, then hide it again without interrupting the running shell processes.
 
-Current baseline: **Terminal 3.1 (build 7)**.
+Current baseline: **Terminal 3.1.1 (build 8)**.
 
 ## What it does
 
@@ -135,7 +135,7 @@ swift run Terminal
 swift test
 ```
 
-The validated 3.1 build 7 baseline completed:
+The validated 3.1.1 build 8 baseline completed:
 
 - debug build: PASS;
 - release build: PASS;
