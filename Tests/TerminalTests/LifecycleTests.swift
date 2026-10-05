@@ -133,6 +133,63 @@ final class LifecycleTests: XCTestCase {
     }
 
     @MainActor
+    func testSessionCreationUsesRequestedWorkingDirectory() throws {
+        let manager = TerminalSessionManager()
+        defer { manager.stopAll() }
+        let directory = URL(fileURLWithPath: "/tmp")
+        let source = try manager.createSession(in: directory)
+        let copy = try manager.createSession(in: source.workingDirectory)
+        XCTAssertEqual(copy.workingDirectory, source.workingDirectory)
+        XCTAssertEqual(manager.selectedSessionID, copy.id)
+    }
+
+    @MainActor
+    func testMenuBarPresentationIsDefault() {
+        let controller = TerminalPanelController(sessions: TerminalSessionManager())
+        defer { controller.shutdown() }
+        XCTAssertEqual(controller.presentationMode, .menuBar)
+        XCTAssertFalse(controller.panel.isVisible)
+    }
+
+    @MainActor
+    func testPresentationModeTransitionsKeepSessions() throws {
+        let manager = TerminalSessionManager()
+        let session = try manager.createSession()
+        let controller = TerminalPanelController(sessions: manager)
+        defer { controller.shutdown(); manager.stopAll() }
+        controller.panel.orderFrontRegardless()
+        controller.detach()
+        XCTAssertEqual(controller.presentationMode, .desktopWindow)
+        XCTAssertTrue(controller.panel.styleMask.contains(.borderless))
+        XCTAssertEqual(manager.sessions.first?.id, session.id)
+        controller.attach()
+        XCTAssertEqual(controller.presentationMode, .menuBar)
+        XCTAssertEqual(manager.sessions.first?.id, session.id)
+    }
+
+    @MainActor
+    func testStableTabHeight() throws {
+        let manager = TerminalSessionManager()
+        defer { manager.stopAll() }
+        _ = try manager.createSession()
+        for _ in 1...9 { _ = try manager.createSession() }
+        let strip = TabStrip(frame: NSRect(x: 0, y: 0, width: 300, height: 38))
+        strip.render(sessions: manager.sessions, selectedID: manager.selectedSessionID)
+        strip.layoutSubtreeIfNeeded()
+        XCTAssertEqual(strip.frame.height, 38)
+        XCTAssertTrue(strip.horizontalScrollerIsHidden)
+    }
+
+    @MainActor
+    func testTabWheelScrollMappingAndClamp() {
+        XCTAssertEqual(TabOverflowScrollView.horizontalDelta(deltaX: 0, deltaY: 1, hasOverflow: false, precise: false), 0)
+        XCTAssertEqual(TabOverflowScrollView.horizontalDelta(deltaX: 0, deltaY: 1, hasOverflow: true, precise: false), 20)
+        XCTAssertEqual(TabOverflowScrollView.horizontalDelta(deltaX: 4, deltaY: 99, hasOverflow: true, precise: true), 4)
+        XCTAssertEqual(TabOverflowScrollView.clampedOrigin(current: 5, delta: -20, maximum: 100), 0)
+        XCTAssertEqual(TabOverflowScrollView.clampedOrigin(current: 95, delta: 20, maximum: 100), 100)
+    }
+
+    @MainActor
     func testInvalidDirectoryDoesNotCreateBrokenSession() {
         let manager = TerminalSessionManager()
         XCTAssertThrowsError(try manager.createSession(in: URL(fileURLWithPath: "/missing-\(UUID())")))

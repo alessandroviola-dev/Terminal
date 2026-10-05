@@ -4,7 +4,16 @@ All notable public-facing changes to Terminal are documented here.
 
 ## Unreleased
 
-- Public-release preparation: documentation, validation record, security policy and CI metadata.
+No unreleased changes.
+
+## 3.1 — build 7
+
+- Added optional detachable desktop-window mode while keeping menu-bar mode as the default.
+- Preserved live PTY-backed sessions, tabs, working directories and scrollback across detach and reattach.
+- Added per-tab `+` creation in the source session's current working directory.
+- Stabilized tab height and added horizontal overflow scrolling without a visible scrollbar.
+- Added trackpad and mouse-wheel tab scrolling with selected-tab auto-reveal.
+- Updated public documentation and local validation records.
 
 ## 3.0 — build 6
 
